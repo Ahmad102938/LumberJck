@@ -139,6 +139,30 @@ export function game(): Phaser.Types.Scenes.SettingsConfig | Phaser.Types.Scenes
                 angle: 720,
             });
         };
+
+        (this as any).chkcollsn = function(playerposition: any){
+          var collision = false;
+          var branch = arraybranch[0];
+          var branchposition = branch.data.get("twig");
+          if(branchposition == playerposition){
+              (this as any).losegame();
+              collision = true;
+              
+          }
+          return (collision as boolean);
+      };
+
+      (this as any).losegame = function(){
+        console.log("yss");
+        gameover = true;
+        (this as any).input.keyboard.enabled = false;
+        this.add.image(400, 300, 'yellow_pannel').setScale(3);
+        this.add.text(400, 300, "GAME-OVER", {
+            fontSize:30,
+            color:"#000",
+            align:"center"
+        }).setOrigin(0.5);
+    };
         
         (this as any).lowerbranch = function(){
             for(var i=0; i<arraybranch.length; i++){
@@ -163,31 +187,9 @@ export function game(): Phaser.Types.Scenes.SettingsConfig | Phaser.Types.Scenes
 
         }
 
-        this.chkcollsn = function(playerposition: any){
-            var collision:boolean = false;
-            var branch = arraybranch[0];
-            var branchposition = branch.data.get("twig");
-            if(branchposition == playerposition){
-                (this as any).losegame();
-                collision = true;
-                
-            }
-            return collision;
-        }
 
-        this.losegame = function(){
-            console.log("yss");
-            gameover = true;
-            (this as any).input.keyboard.enabled = false;
-            this.add.image(400, 300, 'yellow_pannel').setScale(3);
-            this.add.text(400, 300, "GAME-OVER", {
-                fontSize:30,
-                color:"#000",
-                align:"center"
-            }).setOrigin(0.5);
-        }
 
-        this.bgm = this.sound.add("bgm").play({loop:true});
+        this.sound.add("bgm").play({loop:true});
         this.add.image(400, 300, 'bg');
 
         this.add.image(100, 40, 'grey').setScale(0.8);
@@ -254,7 +256,7 @@ export function game(): Phaser.Types.Scenes.SettingsConfig | Phaser.Types.Scenes
 
         
       },
-      update(time, dt) {
+      update(_time, dt) {
         if (startKey.isDown) {
         
           this.scene.start(gameSceneKey);
