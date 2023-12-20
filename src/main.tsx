@@ -8,12 +8,10 @@ const GameConfig: Phaser.Types.Core.GameConfig = {
   title: 'lamberjack',
   url: 'https://github.com/digitsensitive/phaser3-typescript',
   version: '2.0',
-  width: 800,
-  height: 600,
+  width: window.innerWidth,
+  height: window.innerHeight,
   type: Phaser.AUTO,
   parent: 'root',
-  // `as as Phaser.Types.Scenes.SettingsConfig[]` is required until https://github.com/photonstorm/phaser/pull/6235
-  scene: [game()] as Phaser.Types.Scenes.SettingsConfig[],
   input: {
     keyboard: true
   },
@@ -26,18 +24,25 @@ const GameConfig: Phaser.Types.Core.GameConfig = {
   },
   render: { pixelArt: false, antialias: true },
   scale: {
-    mode: Phaser.Scale.FIT,
+    mode: Phaser.Scale.RESIZE,
     autoCenter: Phaser.Scale.CENTER_BOTH,
-    // `fullscreenTarget` must be defined for phones to not have
-    // a small margin during fullscreen.
-    fullscreenTarget: 'app',
-    expandParent: false,
+    fullscreenTarget: 'root', // Ensure this matches your HTML element ID
   },
+  // `as as Phaser.Types.Scenes.SettingsConfig[]` is required until https://github.com/photonstorm/phaser/pull/6235
+  scene: [game()] as Phaser.Types.Scenes.SettingsConfig[],
 };
 
 export class Game extends Phaser.Game {
   constructor(config: Phaser.Types.Core.GameConfig) {
     super(config);
+
+    // Ensure the canvas size matches the window size
+    window.addEventListener('resize', () => {
+      this.scale.resize(window.innerWidth, window.innerHeight);
+    });
+
+    // Expose `_game` to allow debugging, mute button, and fullscreen button
+    (window as any)._game = this;
   }
 }
 

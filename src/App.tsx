@@ -10,125 +10,124 @@ import yellow_pannel from './assets/yellow_panel.png';
 import bgm from './assets/bgm.ogg';
 import impact from './assets/impact.wav';
 
+
 export const gameSceneKey = 'GameScene';
 
 export function game(): Phaser.Types.Scenes.SettingsConfig | Phaser.Types.Scenes.CreateSceneFromObjectConfig {
-    let startKey: Phaser.Input.Keyboard.Key;
+    let StartKey: Phaser.Input.Keyboard.Key;
 
-    var arraybranch: any[] = []; 
-    var arrayresumebranch: any[] = [];
-    var score:any = 0;
-    var indicatortimer: Phaser.GameObjects.Image | null = null;
-    var timecountdown = 10000;
-    var reducetime = 1;
-    var gameover = false;
+    let ArrayBranch: any[] = []; 
+    let ArrayResumeBranch: any[] = [];
+    let Score:any = 0;
+    let IndicatorTimer: Phaser.GameObjects.Image | null = null;
+    let TimeCountDown = 10000;
+    let ReduceTime = 1;
+    let GameOver = false;
 
-    const right_player_position = 1;
-    const left_player_position = 2;
-    const max_dis_width = 150;
-    const max_time_count = 10000;
-    const add_timer = 200;
-    const min_reduce_time = 0.3;
+    const RIGHT_PLAYER_POSITION = 1;
+    const LEFT_PLAYER_POSITION = 2;
+    const MAX_DIS_WIDTH = 150;
+    const MAX_TIME_COUNT = 10000;
+    const ADD_TIMER = 200;
+    const MIN_REDUCE_TIME = 0.3;
 
     return {
       key: gameSceneKey,
       preload() {
-        startKey = (this as any).input.keyboard.addKey(
+        StartKey = (this as any).input.keyboard.addKey(
           Phaser.Input.Keyboard.KeyCodes.S,
         );
-        startKey.isDown = false;
-        this.load.image('bg', bg);
-        this.load.image('branch', branch);
-        this.load.image('jack', jack);
-        this.load.image('twig', twig);
-        this.load.image('grey', grey_button);
-        this.load.image('red', red_button);
-        this.load.image('yellow_pannel', yellow_pannel);
+        StartKey.isDown = false;
+        (this as any).load.image('bg', bg);
+        (this as any).load.image('branch', branch);
+        (this as any).load.image('jack', jack);
+        (this as any).load.image('twig', twig);
+        (this as any).load.image('grey', grey_button);
+        (this as any).load.image('red', red_button);
+        (this as any).load.image('yellow_pannel', yellow_pannel);
 
-        this.load.audio('bgm', bgm);
-        this.load.audio('impact', impact );
+        (this as any).load.audio('bgm', bgm);
+        (this as any).load.audio('impact', impact );
+
+        (this as any).canvas = (this as any).sys.game.canvas;
       },
       create() {
         (this as any).addbranch = function(){
-            var container = this.add.container(0,0);
-            container.setDataEnabled();
-            var branch = this.add.image(0, 0, 'branch');
-            var righttwig = this.add.image(70,0,'twig');
-            var lefttwig = this.add.image(-70,0,'twig')
-            lefttwig.setFlip(true, false);
+            let Container = this.add.container(0,0);
+            Container.setDataEnabled();
+            let Branch = this.add.image(0, 0, 'branch');
+            let RightTwig = this.add.image(70,0,'twig');
+            let LeftTwig = this.add.image(-70,0,'twig')
+            LeftTwig.setFlip(true, false);
 
-            container.add(branch);
-            container.add(righttwig);
-            container.add(lefttwig);
+            Container.add(Branch);
+            Container.add(RightTwig);
+            Container.add(LeftTwig);
 
-            return container;
+            return Container;
 
         };
 
+
         (this as any).fillbranch = function(elimtwig: number | undefined){
             if(elimtwig == undefined) elimtwig =2;
-            var newbranch = null
-            if(arrayresumebranch.length>0){
-                newbranch = arrayresumebranch[0];
-                arrayresumebranch.shift();
-                newbranch.iterate((child: { visible: boolean; })=>{
+            let NewBranch = null
+            if(ArrayResumeBranch.length>0){
+                NewBranch = ArrayResumeBranch[0];
+                ArrayResumeBranch.shift();
+                NewBranch.iterate((child: { visible: boolean; })=>{
                     child.visible = true;
                 });
             }
             else{
-               newbranch = this.addbranch();
+               NewBranch = this.addbranch();
             }
 
             if(elimtwig == 0){
-                var righttwig = newbranch.getAt(1);
-                righttwig.visible = false;
-                var lefttwig = newbranch.getAt(2);
-                lefttwig.visible = false;
-                newbranch.data.set("twig", 0);
+                let RightTwig = NewBranch.getAt(1);
+                RightTwig.visible = false;
+                let LeftTwig = NewBranch.getAt(2);
+                LeftTwig.visible = false;
+                NewBranch.data.set("twig", 0);
             }else if(elimtwig == 1){
-                var righttwig = newbranch.getAt(1);
-                righttwig.visible = false;
-                newbranch.data.set("twig", 1);
+                let RightTwig = NewBranch.getAt(1);
+                RightTwig.visible = false;
+                NewBranch.data.set("twig", 1);
             }else if(elimtwig == 2){
-                var lefttwig = newbranch.getAt(2);
-                lefttwig.visible = false;
-                newbranch.data.set("twig", 2);
+                let LeftTwig = NewBranch.getAt(2);
+                LeftTwig.visible = false;
+                NewBranch.data.set("twig", 2);
             }
 
-            return newbranch;
+
+            return NewBranch;
         };
 
         (this as any).animtnbranch = function(branch: any, position: any ) {
 
-            var timeline = this.add.timeline([
-                {
-                    tween: {
-                        targets:branch,
-                        ease: "linear",
-                        duration: 300,
-                        y: 500,
-                    }
-                    
+            var TimeLine = this.tweens.createTimeline();
+            TimeLine.add({
+                targets: branch,
+                ease: "Linear",
+                duration: 300,
+                y: (this as any).canvas.height-105,
+            });
+            TimeLine.add({
+                targets: branch,
+                ease: "Linear",
+                duration: 300,
+                y: (this as any).canvas.height+105,
+                onComplete: function() {
+                    ArrayResumeBranch.push(branch);
                 },
+            });
+    
 
-                {
-                    tween: {
-                        targets:branch,
-                        ease: "linear",
-                        duration: 300,
-                        y: 700,
-                        onComplete:function(){
-                            arrayresumebranch.push(branch);
-                        },
-                    }
-                }
-            ]);
+            TimeLine.play();
 
-            timeline.play();
-
-            var x_roll = 360;
+            let x_roll = (this as any).canvas.width*0.75;
             if(position== "left"){
-                x_roll=120;
+                x_roll=(this as any).canvas.width*0.25;
             }
             
             this.tweens.add({
@@ -141,23 +140,23 @@ export function game(): Phaser.Types.Scenes.SettingsConfig | Phaser.Types.Scenes
         };
 
         (this as any).chkcollsn = function(playerposition: any){
-          var collision = false;
-          var branch = arraybranch[0];
-          var branchposition = branch.data.get("twig");
-          if(branchposition == playerposition){
+          let Collision = false;
+          let Branch = ArrayBranch[0];
+          let BranchPosition = Branch.data.get("twig");
+          if(BranchPosition == playerposition){
               (this as any).losegame();
-              collision = true;
+              Collision = true;
               
           }
-          return (collision as boolean);
+          return (Collision as boolean);
       };
 
       (this as any).losegame = function(){
         console.log("yss");
-        gameover = true;
+        GameOver = true;
         (this as any).input.keyboard.enabled = false;
-        this.add.image(400, 300, 'yellow_pannel').setScale(3);
-        this.add.text(400, 300, "GAME-OVER", {
+        this.add.image(this.canvas.width*0.5, this.canvas.height*0.5, 'yellow_pannel').setScale(3);
+        this.add.text(this.canvas.width*0.5, this.canvas.height*0.5, "GAME-OVER", {
             fontSize:30,
             color:"#000",
             align:"center"
@@ -165,117 +164,121 @@ export function game(): Phaser.Types.Scenes.SettingsConfig | Phaser.Types.Scenes
     };
         
         (this as any).lowerbranch = function(){
-            for(var i=0; i<arraybranch.length; i++){
-                var branch = arraybranch[i];
-                branch.y = 600 - (i+1)*105;
+            for(let i=0; i<ArrayBranch.length; i++){
+                let Branch = ArrayBranch[i];
+                Branch.y = this.canvas.height - (i+1)*105;
 
             };
             
-            var randomtwig = Phaser.Math.Between(1,2);
-            var topbranch = arraybranch[arraybranch.length - 1];
-            var twigdata = topbranch.data.get("twig");
-            if(twigdata>0){
-                randomtwig = 0;
+            let RandomTwig = Phaser.Math.Between(1,2);
+            let TopBranch = ArrayBranch[ArrayBranch.length - 1];
+            let TwigData = TopBranch.data.get("twig");
+            if(TwigData>0){
+                RandomTwig = 0;
             }
 
-            var newbranch = this.fillbranch(randomtwig);
+            let NewBranch = this.fillbranch(RandomTwig);
 
-            newbranch.setPosition(topbranch.x, topbranch.y - 105);
+            NewBranch.setPosition(TopBranch.x, TopBranch.y - 105);
             
-            newbranch.angle = 0;
-            arraybranch.push(newbranch);
+            NewBranch.angle = 0;
+            ArrayBranch.push(NewBranch);
+            console.log(this.canvas.height);
 
         }
 
+        let Sound = (this as any).sound.add("bgm");
+        Sound.play({loop:true});
 
+        (this as any).add.image((this as any).canvas.width*0.5, (this as any).canvas.height*0.5, 'bg');
 
-        this.sound.add("bgm").play({loop:true});
-        this.add.image(400, 300, 'bg');
+        (this as any).textscore = (this as any).add.text((this as any).canvas.width*0.8, 50, Score, {color:"#000", fontSize:50, align:"center"}).setOrigin(0.5).setDepth(1);
 
-        this.add.image(100, 40, 'grey').setScale(0.8);
-        indicatortimer = this.add.image(25, 40, 'red').setOrigin(0,0.5).setScale(0.6);
-        indicatortimer.displayWidth = max_dis_width;
+        (this as any).add.image(100, 40, 'grey').setScale(0.8).setDepth(2);
+        IndicatorTimer = (this as any).add.image(25, 40, 'red').setOrigin(0,0.5).setScale(0.6).setDepth(2);
+        (IndicatorTimer as any).displayWidth = MAX_DIS_WIDTH;
 
-        (this as any).textscore = this.add.text(600, 50, score, {color:"#000", fontSize:50, align:"center"}).setOrigin(0.5).setDepth(1);
+        
 
-        var jack = this.add.image(300,550,'jack');
+        let Jack = (this as any).add.image((this as any).canvas.width*0.5-105,(this as any).canvas.height-60,'jack');
 
-        for(var i=1;i<=10;i++){
-            var branch = (this as any).addbranch();
+        for(let i=1;i<=10;i++){
+            let Branch = (this as any).addbranch();
 
             if(i%2==0 || i==1){
-                var righttwig = branch.getAt(1);
-                righttwig.visible = false;
-                var lefttwig = branch.getAt(2);
-                lefttwig.visible = false;
-                branch.data.set("twig", 0);
+                let RightTwig = Branch.getAt(1);
+                RightTwig.visible = false;
+                let LeftTwig = Branch.getAt(2);
+                LeftTwig.visible = false;
+                Branch.data.set("twig", 0);
             }else{
-                var random = Phaser.Math.Between(1,2);
-                var twig = branch.getAt(random);
-                twig.visible = false;
-                branch.data.set("twig", random);
+                let Random = Phaser.Math.Between(1,2);
+                let Twig = Branch.getAt(Random);
+                Twig.visible = false;
+                Branch.data.set("twig", Random);
             }
 
-            branch.setPosition(400, 600 - i*105,);
-            arraybranch.push(branch);
+            Branch.setPosition((this as any).canvas.width*0.5, (this as any).canvas.height - i*105,);
+            ArrayBranch.push(Branch);
         }
 
-        this.input.keyboard?.on('keydown-RIGHT', ()=>{
-            if (gameover) return;
-            jack.x=480;
-            jack.flipX = true;
-            var branch = arraybranch[0];
-            if((this as any).animtnbranch(branch, "left")) return;
-            (this as any).chkcollsn(left_player_position);
-            arraybranch.shift();
+        (this as any).input.keyboard?.on('keydown-RIGHT', ()=>{
+            if (GameOver) return;
+            Jack.x=(this as any).canvas.width*0.5+105;
+            Jack.flipX = true;
+            let Branch = ArrayBranch[0];
+            if((this as any).animtnbranch(Branch, "left")) return;
+            (this as any).chkcollsn(LEFT_PLAYER_POSITION);
+            ArrayBranch.shift();
             (this as any).lowerbranch();
-            if((this as any).chkcollsn(left_player_position)) return;
-            score+=1;
-            (this as any).textscore.text = score;
-            timecountdown += add_timer*reducetime;
-            if(timecountdown>max_time_count) timecountdown=max_time_count;
-            this.sound.add("impact").play();
+            if((this as any).chkcollsn(LEFT_PLAYER_POSITION)) return;
+            Score+=1;
+            (this as any).textscore.text = Score;
+            TimeCountDown += ADD_TIMER*ReduceTime;
+            if(TimeCountDown>MAX_TIME_COUNT) TimeCountDown=MAX_TIME_COUNT;
+            (this as any).sound.add("impact").play();
         });
 
-        this.input.keyboard?.on('keydown-LEFT', ()=>{
-            if (gameover) return;
-            jack.x=300;
-            jack.flipX = false;
-            var branch = arraybranch[0];
-            if((this as any).animtnbranch(branch, "right")) return;
-            (this as any).chkcollsn(right_player_position);
-            arraybranch.shift();
+        (this as any).input.keyboard?.on('keydown-LEFT', ()=>{
+            if (GameOver) return;
+            Jack.x=(this as any).canvas.width*0.5-105;
+            Jack.flipX = false;
+            let Branch = ArrayBranch[0];
+            if((this as any).animtnbranch(Branch, "right")) return;
+            (this as any).chkcollsn(RIGHT_PLAYER_POSITION);
+            ArrayBranch.shift();
             (this as any).lowerbranch();
-            if((this as any).chkcollsn(right_player_position)) return;
-            score+=1;
-            (this as any).textscore.text = score;
-            timecountdown += add_timer*reducetime;
-            if(timecountdown>max_time_count) timecountdown=max_time_count;
-            this.sound.add('impact').play();
+            if((this as any).chkcollsn(RIGHT_PLAYER_POSITION)) return;
+            Score+=1;
+            (this as any).textscore.text = Score;
+            TimeCountDown += ADD_TIMER*ReduceTime;
+            if(TimeCountDown>MAX_TIME_COUNT) TimeCountDown=MAX_TIME_COUNT;
+            (this as any).sound.add('impact').play();
         })
 
         
       },
-      update(_time, dt) {
-        if (startKey.isDown) {
+      update(_time: any, dt: number) {
+        if (StartKey.isDown) {
         
-          this.scene.start(gameSceneKey);
+            (this as any).scene.start(gameSceneKey);
         }
-        if(gameover) return;
-        timecountdown -= dt;
-        if(timecountdown<=0) {
-            timecountdown=0;
-            gameover = true;
-            this.add.image(400, 300, 'yellow_pannel').setScale(3);
-            this.add.text(400, 300, "GAME-OVER", {
+        if(GameOver) return;
+        TimeCountDown -= dt;
+        if(TimeCountDown<=0) {
+            TimeCountDown=0;
+            GameOver = true;
+            let YellowPannel = (this as any).add.image((this as any).canvas.width*0.5, (this as any).canvas.height*0.5, 'yellow_pannel').setOrigin(0.5);
+            YellowPannel.setScale((this as any).canvas.width / YellowPannel.width, (this as any).canvas.height / YellowPannel.height);
+            (this as any).add.text((this as any).canvas.width*0.5, (this as any).canvas.height*0.5, "GAME-OVER", {
                 fontSize:30,
                 color:"#000",
                 align:"center"
             }).setOrigin(0.5);
         };
-        reducetime -= dt*0.0001;
-        if(reducetime<min_reduce_time) reducetime = min_reduce_time;
-        (indicatortimer as any).displayWidth = max_dis_width*(timecountdown/max_time_count);
+        ReduceTime -= dt*0.0001;
+        if(ReduceTime<MIN_REDUCE_TIME) ReduceTime = MIN_REDUCE_TIME;
+        (IndicatorTimer as any).displayWidth = MAX_DIS_WIDTH*(TimeCountDown/MAX_TIME_COUNT);
     
         // for (let i = 0; i < sprites.length; i++) {
         //     const sprite = sprites[i].s;
