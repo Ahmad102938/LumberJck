@@ -3,9 +3,10 @@ import branch from './assets/wood4.png';
 import bg from './assets/bg2.jpg';
 import jack from './assets/lumberjack3.png';
 import twig from './assets/sidebranch5.png';
-import grey_button from './assets/grey_button.png';
-import red_button from './assets/red_button.png';
+import grey_button from './assets/grey_button1.png';
+import red_button from './assets/red_button1.png';
 import yellow_pannel from './assets/yellow_panel.png';
+import restart from './assets/restart.png';
 
 import bgm from './assets/bgm.ogg';
 import impact from './assets/impact.wav';
@@ -13,8 +14,12 @@ import impact from './assets/impact.wav';
 
 export const gameSceneKey = 'GameScene';
 
+
 export function game(): Phaser.Types.Scenes.SettingsConfig | Phaser.Types.Scenes.CreateSceneFromObjectConfig {
     let StartKey: Phaser.Input.Keyboard.Key;
+
+    let Jack: Phaser.GameObjects.Image;
+    let restartButton: Phaser.GameObjects.Image;
 
     let ArrayBranch: any[] = []; 
     let ArrayResumeBranch: any[] = [];
@@ -22,11 +27,15 @@ export function game(): Phaser.Types.Scenes.SettingsConfig | Phaser.Types.Scenes
     let IndicatorTimer: Phaser.GameObjects.Image | null = null;
     let TimeCountDown = 10000;
     let ReduceTime = 1;
+    let MaxDisWidth = 115;
+
     let GameOver = false;
+    let leftButtonDown: boolean = false;
+    let rightButtonDown: boolean = false;
+    let touchActionTriggered: boolean = false;
 
     const RIGHT_PLAYER_POSITION = 1;
     const LEFT_PLAYER_POSITION = 2;
-    const MAX_DIS_WIDTH = 150;
     const MAX_TIME_COUNT = 10000;
     const ADD_TIMER = 200;
     const MIN_REDUCE_TIME = 0.3;
@@ -45,6 +54,7 @@ export function game(): Phaser.Types.Scenes.SettingsConfig | Phaser.Types.Scenes
         (this as any).load.image('grey', grey_button);
         (this as any).load.image('red', red_button);
         (this as any).load.image('yellow_pannel', yellow_pannel);
+        (this as any).load.image('restart', restart);
 
         (this as any).load.audio('bgm', bgm);
         (this as any).load.audio('impact', impact );
@@ -187,22 +197,49 @@ export function game(): Phaser.Types.Scenes.SettingsConfig | Phaser.Types.Scenes
 
         }
 
+        //Sound
         let Sound = (this as any).sound.add("bgm");
         Sound.play({loop:true});
 
+        //Background Image
         (this as any).add.image((this as any).canvas.width*0.5, (this as any).canvas.height*0.5, 'bg');
 
+        //Displaying Text Score
         (this as any).textscore = (this as any).add.text((this as any).canvas.width*0.8, 50, Score, {color:"#000", fontSize:50, align:"center"}).setOrigin(0.5).setDepth(1);
 
-        (this as any).add.image(100, 40, 'grey').setScale(0.8).setDepth(2);
-        IndicatorTimer = (this as any).add.image(25, 40, 'red').setOrigin(0,0.5).setScale(0.6).setDepth(2);
-        (IndicatorTimer as any).displayWidth = MAX_DIS_WIDTH;
+        //Adding Life Of The Game
+        (this as any).add.image(65, 40, 'grey').setScale(0.8).setDepth(2);
+        IndicatorTimer = (this as any).add.image(6, 40, 'red').setOrigin(0,0.5).setScale(0.6).setDepth(2);
+        (IndicatorTimer as any).displayWidth = MaxDisWidth;
 
         
 
-        let Jack = (this as any).add.image((this as any).canvas.width*0.5-105,(this as any).canvas.height-60,'jack');
+        //Player (Jack)
+        Jack = (this as any).add.image((this as any).canvas.width*0.5-105,(this as any).canvas.height-60,'jack');
 
-        for(let i=1;i<=10;i++){
+        //Restart
+        restartButton = (this as any).add.image((this as any).canvas.width * 0.5, (this as any).canvas.height * 0.6, 'restart').setDepth(2)
+                .setScale(2)
+                .setInteractive();
+
+        restartButton.on('pointerup', () => {
+                Jack.destroy();
+                Sound.stop();
+                Score = 0;
+                MaxDisWidth = 115;
+                TimeCountDown = MAX_TIME_COUNT;
+                ReduceTime = 1;
+                ArrayBranch = [];
+                ArrayResumeBranch = [];
+                // Restart the game when the button is clicked
+                (this as any).scene.stop(); // Stop the current scene
+                (this as any).scene.start(gameSceneKey);
+                GameOver = false;
+                (this as any).input.keyboard.enabled = true;
+        });
+
+        //Function Of Creating Branch With Visible And Invisisble Twigs
+        for(let i=1;i<=11;i++){
             let Branch = (this as any).addbranch();
 
             if(i%2==0 || i==1){
@@ -222,8 +259,38 @@ export function game(): Phaser.Types.Scenes.SettingsConfig | Phaser.Types.Scenes
             ArrayBranch.push(Branch);
         }
 
+         // Add touch controls
+         (this as any).input.on('pointerdown', (pointer: any) => {
+            const { x } = pointer;
+
+            // Check if touch is on the left side of the screen
+            if (x < (this as any).canvas.width / 2) {
+                leftButtonDown = true;
+                rightButtonDown = false;
+            }
+            // Check if touch is on the right side of the screen
+            else {
+                leftButtonDown = false;
+                rightButtonDown = true;
+            }
+
+            // Reset the touch action flag
+            touchActionTriggered = false;
+        });
+
+        (this as any).input.on('pointerup', () => {
+            leftButtonDown = false;
+            rightButtonDown = false;
+            touchActionTriggered = false;
+        });
+
         (this as any).input.keyboard?.on('keydown-RIGHT', ()=>{
-            if (GameOver) return;
+            if (GameOver) {
+                restartButton.visible = true; // Make the restart button visible
+                return;
+            } else {
+                restartButton.visible = false; // Hide the restart button during gameplay
+            }
             Jack.x=(this as any).canvas.width*0.5+105;
             Jack.flipX = true;
             let Branch = ArrayBranch[0];
@@ -240,7 +307,12 @@ export function game(): Phaser.Types.Scenes.SettingsConfig | Phaser.Types.Scenes
         });
 
         (this as any).input.keyboard?.on('keydown-LEFT', ()=>{
-            if (GameOver) return;
+            if (GameOver) {
+                restartButton.visible = true; // Make the restart button visible
+                return;
+            } else {
+                restartButton.visible = false; // Hide the restart button during gameplay
+            }
             Jack.x=(this as any).canvas.width*0.5-105;
             Jack.flipX = false;
             let Branch = ArrayBranch[0];
@@ -256,14 +328,72 @@ export function game(): Phaser.Types.Scenes.SettingsConfig | Phaser.Types.Scenes
             (this as any).sound.add('impact').play();
         })
 
+
+
         
       },
       update(_time: any, dt: number) {
+
+        
         if (StartKey.isDown) {
         
             (this as any).scene.start(gameSceneKey);
         }
-        if(GameOver) return;
+      
+         // Check for touch controls
+         if (leftButtonDown && !touchActionTriggered) {
+            // Handle left movement
+            if (GameOver) {
+                restartButton.visible = true; // Make the restart button visible
+                return;
+            } else {
+                restartButton.visible = false; // Hide the restart button during gameplay
+            }
+            Jack.x=(this as any).canvas.width*0.5-105;
+            Jack.flipX = false;
+            let Branch = ArrayBranch[0];
+            if((this as any).animtnbranch(Branch, "right")) return;
+            (this as any).chkcollsn(RIGHT_PLAYER_POSITION);
+            ArrayBranch.shift();
+            (this as any).lowerbranch();
+            if((this as any).chkcollsn(RIGHT_PLAYER_POSITION)) return;
+            Score+=1;
+            (this as any).textscore.text = Score;
+            TimeCountDown += ADD_TIMER*ReduceTime;
+            if(TimeCountDown>MAX_TIME_COUNT) TimeCountDown=MAX_TIME_COUNT;
+            (this as any).sound.add('impact').play();
+            touchActionTriggered = true;
+        } else if (rightButtonDown && !touchActionTriggered) {
+            // Handle right movement
+            if (GameOver) {
+                restartButton.visible = true; // Make the restart button visible
+                return;
+            } else {
+                restartButton.visible = false; // Hide the restart button during gameplay
+            }
+            Jack.x=(this as any).canvas.width*0.5+105;
+            Jack.flipX = true;
+            let Branch = ArrayBranch[0];
+            if((this as any).animtnbranch(Branch, "left")) return;
+            (this as any).chkcollsn(LEFT_PLAYER_POSITION);
+            ArrayBranch.shift();
+            (this as any).lowerbranch();
+            if((this as any).chkcollsn(LEFT_PLAYER_POSITION)) return;
+            Score+=1;
+            (this as any).textscore.text = Score;
+            TimeCountDown += ADD_TIMER*ReduceTime;
+            if(TimeCountDown>MAX_TIME_COUNT) TimeCountDown=MAX_TIME_COUNT;
+            (this as any).sound.add("impact").play();
+            touchActionTriggered = true;
+        }
+
+        // if(GameOver) return;
+        if(GameOver){
+            restartButton.visible = true;
+            return;
+        } else{
+            restartButton.visible = false;
+        }
         TimeCountDown -= dt;
         if(TimeCountDown<=0) {
             TimeCountDown=0;
@@ -278,7 +408,7 @@ export function game(): Phaser.Types.Scenes.SettingsConfig | Phaser.Types.Scenes
         };
         ReduceTime -= dt*0.0001;
         if(ReduceTime<MIN_REDUCE_TIME) ReduceTime = MIN_REDUCE_TIME;
-        (IndicatorTimer as any).displayWidth = MAX_DIS_WIDTH*(TimeCountDown/MAX_TIME_COUNT);
+        (IndicatorTimer as any).displayWidth = MaxDisWidth*(TimeCountDown/MAX_TIME_COUNT);
     
         // for (let i = 0; i < sprites.length; i++) {
         //     const sprite = sprites[i].s;

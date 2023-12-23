@@ -4,6 +4,7 @@ import 'phaser'
 
 import {game} from './App';
 
+
 const GameConfig: Phaser.Types.Core.GameConfig = {
   title: 'lamberjack',
   url: 'https://github.com/digitsensitive/phaser3-typescript',
@@ -30,6 +31,13 @@ const GameConfig: Phaser.Types.Core.GameConfig = {
   },
   // `as as Phaser.Types.Scenes.SettingsConfig[]` is required until https://github.com/photonstorm/phaser/pull/6235
   scene: [game()] as Phaser.Types.Scenes.SettingsConfig[],
+
+  callbacks: {
+    postBoot: (game: Phaser.Game) => {
+      const canvas = game.canvas as HTMLCanvasElement;
+      canvas.getContext('2d')?.canvas.setAttribute('willReadFrequently', 'true');
+    },
+  },
 };
 
 export class Game extends Phaser.Game {
